@@ -21,54 +21,151 @@
 // See https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready
 document.addEventListener('deviceready', onDeviceReady, false);
 
-function onDeviceReady() {
-    // Cordova is now initialized. Have fun!
+var width = 800;
+var height = 600;
+var pipeDistance = 500;
+var pipeHorDistance = 300;
 
-    var config = {
-        type: Phaser.AUTO,
-        width: 800,
-        height: 600,
-        physics: {
-            default: 'arcade',
-            arcade: {
-                gravity: { y: 200 }
-            }
-        },
-        scene: {
-            preload: preload,
-            create: create
-        }
+function Pipe() {
+    this.Top;
+    this.Bottom;
+
+    this.SetY = function(y){
+        this.Top.setY(y - pipeDistance / 2);
+        this.Bottom.setY(y + pipeDistance / 2);
+        console.log("Set");
+    }
+    this.MoveX = function(x) {
+        this.Top.setX(this.Top.x - x);
+        this.Bottom.setX(this.Bottom.x - x);
+        console.log("move");
     };
+    this.SetX = function(x) {
+        this.Top.setX(x);
+        this.Bottom.setX(x);
+        console.log("move");
+    };
+}
 
+function onDeviceReady() {
+    var config = {
+      type: Phaser.WEBGL,
+      parent: 'flappy-game',
+      scale: {
+          mode: Phaser.Scale.FIT,
+          parent: 'flappy-game',
+          autoCenter: Phaser.Scale.CENTER_BOTH,
+          width: width,
+          height: height
+      },
+      physics: {
+        default: 'arcade',
+        arcade: {
+            debug: true,
+            gravity: { y: 150 }
+        }
+        },
+      scene: {
+          preload: preload,
+          create: create,
+          update: update,
+      }
+    };
+  
     var game = new Phaser.Game(config);
+    var ground;
+    var bird;
+    var bg;
+    var pipes = [];
 
-    function preload ()
-    {
-        this.load.setBaseURL('http://labs.phaser.io');
-
-        this.load.image('sky', 'assets/skies/space3.png');
-        this.load.image('logo', 'assets/sprites/phaser3-logo.png');
-        this.load.image('red', 'assets/particles/red.png');
+    function preload() {
+        this.load.atlasXML('sheet', 'img/sheet.png', 'img/sheet.xml');
     }
 
-    function create ()
-    {
-        this.add.image(400, 300, 'sky');
+    function create() {
+        // window.addEventListener('resize', resize);
+        window.addEventListener('mousedown', touch);
+        window.addEventListener('touchstart', touch);
 
-        var particles = this.add.particles('red');
-
-        var emitter = particles.createEmitter({
-            speed: 100,
-            scale: { start: 1, end: 0 },
-            blendMode: 'ADD'
+        game.anims.create({
+            key: 'bird',
+            repeat: -1,
+            frameRate: 10,
+            frames: this.anims.generateFrameNames('sheet', { start: 1,  end: 3, prefix: 'bird_', suffix: '.png' })
         });
 
-        var logo = this.physics.add.image(400, 100, 'logo');
+        bg = this.add.tileSprite(0, height - 228, width, 228, 'sheet', 'background.png').setOrigin(0);
+        bg.setScrollFactor(1, 0);
+        ground = this.add.tileSprite(0, height - 112, width, 112, 'sheet', 'ground.png').setOrigin(0);
+        ground.setScrollFactor(2, 0);
+        this.physics.add.existing(ground, true);
+        bird = this.physics.add.sprite(width / 2, height / 2, 'sheet').setOrigin(0).play('bird');
+        bird.setCollideWorldBounds(true);
 
-        logo.setVelocity(100, 200);
-        logo.setBounce(1, 1);
-        logo.setCollideWorldBounds(true);
+        for(var i = 0; i < 5; i++)
+        {
+            pipes.push(new Pipe());
 
-        emitter.startFollow(logo);
+            pipes[i].Top = this.add.sprite(width / 2, height / 2, 'sheet', 'pipe_south.png');
+            pipes[i].Bottom = this.add.sprite(width / 2, height / 2, 'sheet', 'pipe_north.png');
+            pipes[i].SetY(height / 2);
+            pipes[i].SetX(width + pipeHorDistance * i);
+            this.physics.add.existing(pipes[i].Top, false);
+            this.physics.add.existing(pipes[i].Bottom, false);
+            pipes[i].Top.body.setAllowGravity(false);
+            pipes[i].Bottom.body.setAllowGravity(false);
+        }
+
+        // resize();
     }
+  
+    function update() {
+        this.physics.world.collide(
+            bird,
+            ground,
+            playerCollide,
+            null,
+            this);
+        bg.tilePositionX += 1;
+        ground.tilePositionX += 2;
+        updatePipes();
+    }
+
+    function playerCollide()
+    {
+        console.log("collide");
+    }
+  
+    function updatePipes()
+    {
+        pipes.forEach(pipe => {
+            pipe.MoveX(5);
+            if(pipe.Top.x < -50)
+            {
+                pipe.SetX(width + 50);
+                pipe.SetY(height / 2 + (Math.random() - 0.5) * 300);
+            }
+        });
+    }
+
+    function touch()
+    {
+        bird.setVelocity(0, -150);
+    }
+
+    // function resize() {
+    //     var canvas = game.canvas, width = window.innerWidth, height = window.innerHeight;
+    //     var wratio = width / height, ratio = canvas.width / canvas.height;
+   
+    //     canvas.style.width = width + "px";
+    //     canvas.style.width = height + "px";
+
+    //   if (wratio < ratio) {
+    //       canvas.style.width = width + "px";
+    //       canvas.style.height = (width / ratio) + "px";
+    //   } else {
+    //       canvas.style.width = (height * ratio) + "px";
+    //       canvas.style.height = height + "px";
+    //   }
+//   }
 }

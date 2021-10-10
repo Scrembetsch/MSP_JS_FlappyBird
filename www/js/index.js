@@ -19,153 +19,370 @@
 
 // Wait for the deviceready event before using any of Cordova's device APIs.
 // See https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready
-document.addEventListener('deviceready', onDeviceReady, false);
+document.addEventListener('deviceready', Event_OnDeviceReady, false);
 
-var width = 800;
-var height = 600;
-var pipeDistance = 500;
-var pipeHorDistance = 300;
-
-function Pipe() {
-    this.Top;
-    this.Bottom;
-
-    this.SetY = function(y){
-        this.Top.setY(y - pipeDistance / 2);
-        this.Bottom.setY(y + pipeDistance / 2);
-        console.log("Set");
+//#region Enums
+const GameState= {
+    INIT: 0,
+    START_SCREEN: 1,
+    GAME_OVER: 2,
+    GAME: 3,
     }
-    this.MoveX = function(x) {
-        this.Top.setX(this.Top.x - x);
-        this.Bottom.setX(this.Bottom.x - x);
-        console.log("move");
-    };
-    this.SetX = function(x) {
-        this.Top.setX(x);
-        this.Bottom.setX(x);
-        console.log("move");
-    };
+//#endregion
+
+//#region Game Balance Values
+const cDefaultScreenWidth = 800;
+const cDefaultScreenHeight = 480;
+const cVerticalPipeDistance = 500;
+const cVerticalPipeVariance = 200;
+const cVerticalPipeOffset = -100;
+const cHorizontalPipeDistance = 300;
+const cHorizontalPipeStartOffset = 500;
+const cScrollSpeed = 2;
+const cBirdJumpVelocity = 200;
+const cBirdGravity = 300;
+const cBirdVerticalOffset = 100;
+
+const cBackgroundHeight = 228;
+const cGroundHeight = 112;
+const cScoreWidth = 14;
+const cScoreSpacing = 2;
+//#endregion
+
+//#region Game State Values
+var Game;
+var Scene;
+var FlappyGame;
+var PlayerScore = 0;
+var CurrentGameState = GameState.INIT;
+//#endregion
+
+//#region Classes
+function Pipe()
+{
+    this.TopPipe;
+    this.BottomPipe;
+    this.XPosition = 0;
+    this.YPosition = 0;
+
+    this.SetY = function(y)
+    {
+        this.yPos = y;
+        this.TopPipe.setY(y - cVerticalPipeDistance / 2);
+        this.BottomPipe.setY(y + cVerticalPipeDistance / 2);
+    }
+    this.MoveX = function(x)
+    {
+        this.XPosition = this.XPosition - x;
+        this.TopPipe.setX(this.XPosition);
+        this.BottomPipe.setX(this.XPosition);
+    }
+    this.SetX = function(x)
+    {
+        this.XPosition = x;
+        this.TopPipe.setX(this.XPosition);
+        this.BottomPipe.setX(this.XPosition);
+    }
 }
 
-function onDeviceReady() {
+function Flappy()
+{
+    this.Background;
+    this.Floor;
+    this.Bird;
+    this.Pipes = [];
+    this.PlayerScoreSprites = [];
+
+    this.StartButton;
+}
+//#endregion
+
+//#region Helper
+function GetRandomPipeHeight()
+{
+    return (cDefaultScreenHeight / 2) + ((Math.random() - 0.5) * cVerticalPipeVariance) + cVerticalPipeOffset;
+}
+//#endregion
+
+//#region Game
+function CreateGame()
+{
     var config = {
-      type: Phaser.WEBGL,
-      parent: 'flappy-game',
-      scale: {
-          mode: Phaser.Scale.FIT,
-          parent: 'flappy-game',
-          autoCenter: Phaser.Scale.CENTER_BOTH,
-          width: width,
-          height: height
-      },
-      physics: {
-        default: 'arcade',
-        arcade: {
-            debug: true,
-            gravity: { y: 150 }
-        }
+        type: Phaser.AUTO,
+        parent: 'flappy-game',
+        backgroundColor: '#70c5ce',
+        scale: {
+            mode: Phaser.Scale.HEIGHT_CONTROLS_WIDTH,
+            parent: 'flappy-game',
+            autoCenter: Phaser.Scale.CENTER_BOTH,
+            width: cDefaultScreenWidth,
+            height: cDefaultScreenHeight
         },
-      scene: {
-          preload: preload,
-          create: create,
-          update: update,
-      }
-    };
-  
-    var game = new Phaser.Game(config);
-    var ground;
-    var bird;
-    var bg;
-    var pipes = [];
-
-    function preload() {
-        this.load.atlasXML('sheet', 'img/sheet.png', 'img/sheet.xml');
-    }
-
-    function create() {
-        // window.addEventListener('resize', resize);
-        window.addEventListener('mousedown', touch);
-        window.addEventListener('touchstart', touch);
-
-        game.anims.create({
-            key: 'bird',
-            repeat: -1,
-            frameRate: 10,
-            frames: this.anims.generateFrameNames('sheet', { start: 1,  end: 3, prefix: 'bird_', suffix: '.png' })
-        });
-
-        bg = this.add.tileSprite(0, height - 228, width, 228, 'sheet', 'background.png').setOrigin(0);
-        bg.setScrollFactor(1, 0);
-        ground = this.add.tileSprite(0, height - 112, width, 112, 'sheet', 'ground.png').setOrigin(0);
-        ground.setScrollFactor(2, 0);
-        this.physics.add.existing(ground, true);
-        bird = this.physics.add.sprite(width / 2, height / 2, 'sheet').setOrigin(0).play('bird');
-        bird.setCollideWorldBounds(true);
-
-        for(var i = 0; i < 5; i++)
-        {
-            pipes.push(new Pipe());
-
-            pipes[i].Top = this.add.sprite(width / 2, height / 2, 'sheet', 'pipe_south.png');
-            pipes[i].Bottom = this.add.sprite(width / 2, height / 2, 'sheet', 'pipe_north.png');
-            pipes[i].SetY(height / 2);
-            pipes[i].SetX(width + pipeHorDistance * i);
-            this.physics.add.existing(pipes[i].Top, false);
-            this.physics.add.existing(pipes[i].Bottom, false);
-            pipes[i].Top.body.setAllowGravity(false);
-            pipes[i].Bottom.body.setAllowGravity(false);
+        physics: {
+          default: 'arcade',
+          arcade: {
+              debug: false,
+              gravity: { y: 0 },
+              fixedStep: true
+          }
+          },
+        scene: {
+            preload: Preload,
+            create: Create,
+            update: Update,
         }
-
-        // resize();
-    }
-  
-    function update() {
-        this.physics.world.collide(
-            bird,
-            ground,
-            playerCollide,
-            null,
-            this);
-        bg.tilePositionX += 1;
-        ground.tilePositionX += 2;
-        updatePipes();
-    }
-
-    function playerCollide()
-    {
-        console.log("collide");
-    }
-  
-    function updatePipes()
-    {
-        pipes.forEach(pipe => {
-            pipe.MoveX(5);
-            if(pipe.Top.x < -50)
-            {
-                pipe.SetX(width + 50);
-                pipe.SetY(height / 2 + (Math.random() - 0.5) * 300);
-            }
-        });
-    }
-
-    function touch()
-    {
-        bird.setVelocity(0, -150);
-    }
-
-    // function resize() {
-    //     var canvas = game.canvas, width = window.innerWidth, height = window.innerHeight;
-    //     var wratio = width / height, ratio = canvas.width / canvas.height;
-   
-    //     canvas.style.width = width + "px";
-    //     canvas.style.width = height + "px";
-
-    //   if (wratio < ratio) {
-    //       canvas.style.width = width + "px";
-    //       canvas.style.height = (width / ratio) + "px";
-    //   } else {
-    //       canvas.style.width = (height * ratio) + "px";
-    //       canvas.style.height = height + "px";
-    //   }
-//   }
+    };
+    
+    Game = new Phaser.Game(config);
+    FlappyGame = new Flappy();
 }
+
+function Preload()
+{
+    this.load.atlasXML('sheet', 'img/sheet.png', 'img/sheet.xml');
+}
+
+function Create()
+{
+    Scene = this;
+
+    Game.anims.create({
+        key: 'bird',
+        repeat: -1,
+        frameRate: 10,
+        frames: Game.anims.generateFrameNames('sheet', { start: 1,  end: 3, prefix: 'bird_', suffix: '.png' })
+    });
+
+    FlappyGame.Background = Scene.add.tileSprite(0, cDefaultScreenHeight - cBackgroundHeight, cDefaultScreenWidth, cBackgroundHeight, 'sheet', 'background.png')
+        .setOrigin(0);
+    
+    for(var i = 0; i < (cDefaultScreenWidth / cHorizontalPipeDistance); i++)
+    {
+        FlappyGame.Pipes.push(new Pipe());
+
+        FlappyGame.Pipes[i].TopPipe = Scene.add.sprite(cDefaultScreenWidth / 2, cDefaultScreenHeight / 2, 'sheet', 'pipe_south.png');
+        FlappyGame.Pipes[i].BottomPipe = Scene.add.sprite(cDefaultScreenWidth / 2, cDefaultScreenHeight / 2, 'sheet', 'pipe_north.png');
+
+        FlappyGame.Pipes[i].SetY(GetRandomPipeHeight());
+        FlappyGame.Pipes[i].SetX(cDefaultScreenWidth + cHorizontalPipeDistance * i + cHorizontalPipeStartOffset);
+
+        Scene.physics.add.existing(FlappyGame.Pipes[i].TopPipe, false);
+        Scene.physics.add.existing(FlappyGame.Pipes[i].BottomPipe, false);
+
+        FlappyGame.Pipes[i].TopPipe.body.setAllowGravity(false);
+        FlappyGame.Pipes[i].BottomPipe.body.setAllowGravity(false);
+
+        FlappyGame.Pipes[i].TopPipe.body.setImmovable();
+        FlappyGame.Pipes[i].BottomPipe.body.setImmovable();
+    }
+    
+    FlappyGame.Bird = Scene.physics.add.sprite(cDefaultScreenWidth / 2, cDefaultScreenHeight / 2 - cBirdVerticalOffset, 'sheet')
+        .play('bird');
+    FlappyGame.Bird.setCollideWorldBounds(true);
+    FlappyGame.Bird.setGravityY(0);
+
+    FlappyGame.Ground = Scene.add.tileSprite(0, cDefaultScreenHeight - cGroundHeight, cDefaultScreenWidth, cGroundHeight, 'sheet', 'ground.png')
+        .setOrigin(0);
+    Scene.physics.add.existing(FlappyGame.Ground, true);
+
+    Scene.physics.add.collider(
+        FlappyGame.Bird,
+        FlappyGame.Ground,
+        Event_OnPlayerCollission
+    );
+
+    FlappyGame.Pipes.forEach(pipe =>
+    {
+        Scene.physics.add.overlap(
+            FlappyGame.Bird,
+            pipe.TopPipe,
+            Event_OnPlayerCollission
+        );
+        Scene.physics.add.overlap(
+            FlappyGame.Bird,
+            pipe.BottomPipe,
+            Event_OnPlayerCollission
+        );
+    });
+
+    FlappyGame.StartButton = Scene.add.sprite(cDefaultScreenWidth / 2, cDefaultScreenHeight / 2, 'sheet', 'button_start.png')
+        .setInteractive()
+        .on('pointerdown', () => UpdateGameState(GameState.GAME) );
+
+    UpdateGameState(GameState.INIT);
+    UpdateGameState(GameState.START_SCREEN);
+}
+
+function Update()
+{
+    switch(CurrentGameState)
+    {
+        case GameState.START_SCREEN:
+            UpdateStartScreen();
+            break;
+        case GameState.GAME_OVER:
+            UpdateGameOver();
+            break;
+        case GameState.GAME:
+            UpdateGame();
+            break;
+
+        default:
+            break;
+    }
+}
+//#endregion
+
+//#region Updates
+function UpdateStartScreen()
+{
+
+}
+
+function UpdateGameOver()
+{
+
+}
+
+function UpdateGame()
+{
+    ScrollUpdate();
+}
+
+function ScrollUpdate()
+{
+    // Update Background and ground
+    FlappyGame.Background.tilePositionX += (cScrollSpeed / 2);
+    FlappyGame.Ground.tilePositionX += cScrollSpeed;
+
+    // Update position of each pipe
+    // When pipe is outside screen -> teleport to opposite side
+    // When pipe crosses middle of screen -> update score
+    var score = PlayerScore;
+    FlappyGame.Pipes.forEach(pipe =>
+    {
+        var oldPos = pipe.XPosition;
+        pipe.MoveX(cScrollSpeed);
+
+        // Pipe is outside screen
+        if(pipe.XPosition < -50)
+        {
+            pipe.SetX(cDefaultScreenWidth + 50);
+            pipe.SetY(GetRandomPipeHeight());
+        }
+        // Pipe crossed middle of screen
+        else if(oldPos > (cDefaultScreenWidth / 2)
+            && pipe.XPosition <= (cDefaultScreenWidth / 2))
+        {
+            score++;
+        }
+    });
+    if(score != PlayerScore)
+    {
+        PlayerScore = score;
+        UpdateScore();
+    }
+}
+
+function UpdateScore()
+{
+    for(var i = 0; i < FlappyGame.PlayerScoreSprites.length; i++)
+    {
+        FlappyGame.PlayerScoreSprites[i].destroy(true);
+    }
+    FlappyGame.PlayerScoreSprites = [];
+
+    var scoreAsText = "" + PlayerScore;
+    var completeScoreLength = (scoreAsText.length * cScoreWidth) + ((scoreAsText.length - 1) * cScoreSpacing);
+    for (var i = 0; i < scoreAsText.length; i++)
+    {
+        FlappyGame.PlayerScoreSprites.push();
+        var xPos = cDefaultScreenWidth / 2 - (completeScoreLength / 2) + (cScoreWidth * i) + (cScoreSpacing * i);
+        FlappyGame.PlayerScoreSprites[i] = Scene.add.sprite(xPos, 50, 'sheet', 'number_b_' + scoreAsText.charAt(i) + '.png');
+    }
+}
+//#endregion
+
+//#region GameState Update
+function UpdateGameState(newGamestate)
+{
+    CurrentGameState = newGamestate;
+    switch(CurrentGameState)
+    {
+        case GameState.INIT:
+            OnInit();
+            break;
+        case GameState.START_SCREEN:
+            OnStartScreen();
+            break;
+        case GameState.GAME_OVER:
+            OnGameOver();
+            break;
+        case GameState.GAME:
+            OnGame();
+            break;
+
+        default:
+            break;
+    }
+}
+
+function OnInit()
+{
+
+}
+
+function OnStartScreen()
+{
+    FlappyGame.StartButton.visible = true;
+}
+
+function OnGameOver()
+{
+    FlappyGame.StartButton.visible = true;
+    Scene.cameras.main.flash();
+    
+    window.removeEventListener('mousedown', Event_OnClickOrTap);
+    window.removeEventListener('touchstart', Event_OnClickOrTap);
+}
+
+function OnGame()
+{
+    FlappyGame.StartButton.visible = false;
+    FlappyGame.Bird.setGravityY(cBirdGravity);
+
+    var i = 0;
+    FlappyGame.Pipes.forEach(pipe =>
+    {
+        pipe.SetY(GetRandomPipeHeight());
+        pipe.SetX(cDefaultScreenWidth + cHorizontalPipeDistance * i + cHorizontalPipeStartOffset);
+        i += 1;
+    });
+    FlappyGame.Bird.setY(cDefaultScreenHeight / 2 - cBirdVerticalOffset);
+    PlayerScore = 0;
+    UpdateScore();
+
+    window.addEventListener('mousedown', Event_OnClickOrTap);
+    window.addEventListener('touchstart', Event_OnClickOrTap);
+}
+//#endregion
+
+//#region Events
+function Event_OnDeviceReady()
+{
+    CreateGame();
+}
+
+function Event_OnPlayerCollission()
+{
+    if(CurrentGameState == GameState.GAME)
+    {
+        UpdateGameState(GameState.GAME_OVER);
+    }
+}
+
+function Event_OnClickOrTap()
+{
+    FlappyGame.Bird.setVelocity(0, -cBirdJumpVelocity);
+}
+//#endregion

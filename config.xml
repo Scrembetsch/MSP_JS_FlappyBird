@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="io.cordova.hellocordova" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>HelloCordova</name>
+<widget id="io.tributsch.flappyclone" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Flappy Bird Clone</name>
     <description>
-        A sample Apache Cordova application that responds to the deviceready event.
+        A clone of the game Flappy Bird for the university course "Mobile Game Platforms".
     </description>
-    <author email="dev@cordova.apache.org" href="http://cordova.io">
-        Apache Cordova Team
+    <author email="gs20m008@technikum-wien.at" href="http://technikum-wien.at">
+        Harald Tributsch
     </author>
     <content src="index.html" />
     <access origin="*" />

@@ -9,30 +9,30 @@
 	<SubTexture name="text_flappy_title.png" x="118" y="114" width="96" height="22"/>
 	<SubTexture name="text_game_over.png" x="118" y="136" width="94" height="19"/>
 	<SubTexture name="text_get_ready.png" x="118" y="155" width="87" height="22"/>
-	<SubTexture name="button_rate.png" x="158" y="177" width="80" height="28"/>
-	<SubTexture name="button_menu.png" x="238" y="177" width="80" height="28"/>
-	<SubTexture name="button_share.png" x="318" y="177" width="80" height="28"/>
-	<SubTexture name="button_score.png" x="158" y="191" width="80" height="28"/>
-	<SubTexture name="button_ok.png" x="238" y="191" width="80" height="28"/>
-	<SubTexture name="button_start.png" x="318" y="191" width="80" height="28"/>
-	<SubTexture name="number_s_0.png" x="0" y="177" width="12" height="14"/>
-	<SubTexture name="number_s_1.png" x="12" y="177" width="12" height="14"/>
-	<SubTexture name="number_s_2.png" x="24" y="177" width="12" height="14"/>
-	<SubTexture name="number_s_3.png" x="36" y="177" width="12" height="14"/>
-	<SubTexture name="number_s_4.png" x="48" y="177" width="12" height="14"/>
-	<SubTexture name="number_s_5.png" x="60" y="177" width="12" height="14"/>
-	<SubTexture name="number_s_6.png" x="72" y="177" width="12" height="14"/>
-	<SubTexture name="number_s_7.png" x="84" y="177" width="12" height="14"/>
-	<SubTexture name="number_s_8.png" x="96" y="177" width="12" height="14"/>
-	<SubTexture name="number_s_9.png" x="108" y="177" width="12" height="14"/>
-	<SubTexture name="number_b_0.png" x="0" y="188" width="14" height="20"/>
-	<SubTexture name="number_b_1.png" x="12" y="188" width="14" height="20"/>
-	<SubTexture name="number_b_2.png" x="24" y="188" width="14" height="20"/>
-	<SubTexture name="number_b_3.png" x="36" y="188" width="14" height="20"/>
-	<SubTexture name="number_b_4.png" x="48" y="188" width="14" height="20"/>
-	<SubTexture name="number_b_5.png" x="60" y="188" width="14" height="20"/>
-	<SubTexture name="number_b_6.png" x="72" y="188" width="14" height="20"/>
-	<SubTexture name="number_b_7.png" x="84" y="188" width="14" height="20"/>
-	<SubTexture name="number_b_8.png" x="96" y="188" width="14" height="20"/>
-	<SubTexture name="number_b_9.png" x="108" y="188" width="14" height="20"/>
+	<SubTexture name="button_rate.png" x="158" y="354" width="80" height="28"/>
+	<SubTexture name="button_menu.png" x="238" y="354" width="80" height="28"/>
+	<SubTexture name="button_share.png" x="318" y="354" width="80" height="28"/>
+	<SubTexture name="button_score.png" x="158" y="382" width="80" height="28"/>
+	<SubTexture name="button_ok.png" x="238" y="382" width="80" height="28"/>
+	<SubTexture name="button_start.png" x="318" y="382" width="80" height="28"/>
+	<SubTexture name="number_s_0.png" x="0" y="354" width="12" height="14"/>
+	<SubTexture name="number_s_1.png" x="12" y="354" width="12" height="14"/>
+	<SubTexture name="number_s_2.png" x="24" y="354" width="12" height="14"/>
+	<SubTexture name="number_s_3.png" x="36" y="354" width="12" height="14"/>
+	<SubTexture name="number_s_4.png" x="48" y="354" width="12" height="14"/>
+	<SubTexture name="number_s_5.png" x="60" y="354" width="12" height="14"/>
+	<SubTexture name="number_s_6.png" x="72" y="354" width="12" height="14"/>
+	<SubTexture name="number_s_7.png" x="84" y="354" width="12" height="14"/>
+	<SubTexture name="number_s_8.png" x="96" y="354" width="12" height="14"/>
+	<SubTexture name="number_s_9.png" x="108" y="354" width="12" height="14"/>
+	<SubTexture name="number_b_0.png" x="0" y="376" width="14" height="20"/>
+	<SubTexture name="number_b_1.png" x="16" y="376" width="14" height="20"/>
+	<SubTexture name="number_b_2.png" x="32" y="376" width="14" height="20"/>
+	<SubTexture name="number_b_3.png" x="48" y="376" width="14" height="20"/>
+	<SubTexture name="number_b_4.png" x="64" y="376" width="14" height="20"/>
+	<SubTexture name="number_b_5.png" x="80" y="376" width="14" height="20"/>
+	<SubTexture name="number_b_6.png" x="96" y="376" width="14" height="20"/>
+	<SubTexture name="number_b_7.png" x="112" y="376" width="14" height="20"/>
+	<SubTexture name="number_b_8.png" x="128" y="376" width="14" height="20"/>
+	<SubTexture name="number_b_9.png" x="144" y="376" width="14" height="20"/>
 </TextureAtlas>
